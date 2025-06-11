@@ -3,6 +3,7 @@
     "name": "AIChatClone",
     "slug": "AIChatClone",
     "version": "1.0.0",
+    "scheme": "aichatclone",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -26,8 +27,6 @@
       "favicon": "./assets/favicon.png",
       "bundler": "metro"
     },
-    "plugins": [
-      "expo-router"
-    ]
+    "plugins": ["expo-router"]
   }
 }
