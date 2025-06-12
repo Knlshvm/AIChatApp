@@ -3,13 +3,24 @@ import { useLocalSearchParams } from "expo-router";
 import chatHistory from "assets/data/chatHistory.json";
 import ChatInput from "@/components/ChatInput";
 import MessageListItem from "@/components/MessageListItem";
+import { useChatStore } from "@/store/chatStore";
 
 export default function ChatScreen() {
   const { id } = useLocalSearchParams();
-  const chat = chatHistory.find((chat) => chat.id === id);
+  const chat = useChatStore((state) =>
+    state.chatHistory.find((chat) => chat.id === id)
+  );
+
+  const addNewMessage = useChatStore((state) => state.addNewMessage);
 
   const handleSend = async (message: string) => {
     console.log("Message from id:", id, message);
+    if (!chat) return;
+    addNewMessage(chat?.id, {
+      id: Date.now().toString(),
+      role: "user",
+      message,
+    });
   };
 
   if (!chat) {

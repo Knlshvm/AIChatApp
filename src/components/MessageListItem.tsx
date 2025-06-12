@@ -1,7 +1,7 @@
 import { View, Text } from "react-native";
 import Markdown from "react-native-markdown-display";
 import { Chat, Message } from "@/types/types";
-import { markdownStyles } from "@/utils/Markdown";
+import { markdownStyles } from "@/utils/markdown";
 
 interface MessageListItemProps {
   messageItem: Message;
