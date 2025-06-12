@@ -1,6 +1,5 @@
 import { View, Text, FlatList } from "react-native";
 import { useLocalSearchParams } from "expo-router";
-import chatHistory from "assets/data/chatHistory.json";
 import ChatInput from "@/components/ChatInput";
 import MessageListItem from "@/components/MessageListItem";
 import { useChatStore } from "@/store/chatStore";

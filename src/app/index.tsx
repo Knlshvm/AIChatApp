@@ -1,7 +1,7 @@
 import ChatInput from "@/components/ChatInput";
 import { useChatStore } from "@/store/chatStore";
 import { router } from "expo-router";
-import {  Text, View } from "react-native";
+import { Text, View } from "react-native";
 
 export default function HomeScreen() {
   const createNewChat = useChatStore((state) => state.createNewChat);
@@ -16,6 +16,14 @@ export default function HomeScreen() {
       message,
     });
     router.push(`/chat/${newchatId}`);
+
+    try {
+      const response = await fetch("/api/chat");
+      const data = await response.json();
+      console.log(data);
+    } catch (error) {
+      console.log(error);
+    }
   };
   return (
     <View className=" justify-center flex-1">
