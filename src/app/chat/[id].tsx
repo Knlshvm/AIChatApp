@@ -8,7 +8,7 @@ export default function ChatScreen() {
   const { id } = useLocalSearchParams();
   const chat = chatHistory.find((chat) => chat.id === id);
 
-  const handleSend = (message) => {
+  const handleSend = async (message: string) => {
     console.log("Message from id:", id, message);
   };
 
@@ -26,7 +26,7 @@ export default function ChatScreen() {
         renderItem={({ item }) => <MessageListItem messageItem={item} />}
       />
 
-      <ChatInput onSend={handleSend} isLaoding={false} />
+      <ChatInput onSend={handleSend} isLoading={false} />
     </View>
   );
 }

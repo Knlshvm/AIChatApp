@@ -9,11 +9,16 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useState } from "react";
 
-export default function ChatInput({ onSend, isLaoding }) {
+interface ChatInputProps {
+  onSend: (message: string) => Promise<void>;
+  isLoading?: boolean;
+}
+
+export default function ChatInput({ onSend, isLoading }: ChatInputProps) {
   const insets = useSafeAreaInsets();
   const [message, setMessage] = useState("");
 
-  const handleSend = () => {
+  const handleSend = async (message: string) => {
     setMessage("");
 
     try {
@@ -48,8 +53,8 @@ export default function ChatInput({ onSend, isLaoding }) {
                 name="arrow-up"
                 size={29}
                 color="black"
-                disabled={isLaoding}
-                onPress={handleSend}
+                disabled={isLoading}
+                onPress={() => handleSend(message)}
               />
             ) : (
               <>
