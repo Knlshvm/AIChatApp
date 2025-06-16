@@ -3,14 +3,24 @@ import { useLocalSearchParams } from "expo-router";
 import ChatInput from "@/components/ChatInput";
 import MessageListItem from "@/components/MessageListItem";
 import { useChatStore } from "@/store/chatStore";
+import { useEffect, useRef } from "react";
 
 export default function ChatScreen() {
+  const flatListRef = useRef<FlatList | null>(null);
   const { id } = useLocalSearchParams();
   const chat = useChatStore((state) =>
     state.chatHistory.find((chat) => chat.id === id)
   );
 
   const addNewMessage = useChatStore((state) => state.addNewMessage);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      flatListRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+
+    return () => clearTimeout(timeout);
+  }, [chat?.messages]);
 
   if (!id || Array.isArray(id) || !chat) {
     return (
