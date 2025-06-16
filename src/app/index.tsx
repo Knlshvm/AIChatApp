@@ -7,22 +7,76 @@ export default function HomeScreen() {
   const createNewChat = useChatStore((state) => state.createNewChat);
   const addNewMessage = useChatStore((state) => state.addNewMessage);
 
+  // const handleSend = async (message: string) => {
+  //   const chatId = createNewChat(message.slice(0, 50));
+  //   const newMessage = {
+  //     id: Date.now().toString(),
+  //     role: "user" as const,
+  //     message,
+  //   };
+  //   addNewMessage(chatId, newMessage);
+  //   router.push(`/chat/${chatId}`);
+
+  //   try {
+  //     const response = await fetch("/api/chat", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({ message }),
+  //     });
+  //     const data = await response.json();
+
+  //     if (!data) {
+  //       throw new Error(data.error);
+  //     }
+
+  //     const aiResponseMessage = {
+  //       id: Date.now().toString(),
+  //       message: data.responseMessage,
+  //       responseId: data.responseId,
+  //       role: "assistant" as const,
+  //     };
+
+  //     addNewMessage(chatId, aiResponseMessage);
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // };
+
   const handleSend = async (message: string) => {
-    console.log("message", message);
-    const newchatId = createNewChat(message.slice(0, 50));
-    addNewMessage(newchatId, {
+    const chatId = createNewChat(message.slice(0, 50));
+    const newMessage = {
       id: Date.now().toString(),
-      role: "user",
+      role: "user" as const,
       message,
-    });
-    router.push(`/chat/${newchatId}`);
+    };
+    addNewMessage(chatId, newMessage);
+    router.push(`/chat/${chatId}`);
 
     try {
-      const response = await fetch("/api/chat");
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: [{ role: "user", content: message }],
+        }),
+      });
+
       const data = await response.json();
-      console.log(data);
+
+      if (!response.ok) {
+        throw new Error(data.error);
+      }
+
+      const aiResponseMessage = {
+        id: Date.now().toString(),
+        message: data.responseMessage,
+        responseId: data.responseId,
+        role: "assistant" as const,
+      };
+
+      addNewMessage(chatId, aiResponseMessage);
     } catch (error) {
-      console.log(error);
+      console.log("Home chat error:", error);
     }
   };
   return (
