@@ -1,18 +1,26 @@
-import { View, Text, FlatList } from "react-native";
+import { View, Text, FlatList, Animated, Easing } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import ChatInput from "@/components/ChatInput";
 import MessageListItem from "@/components/MessageListItem";
 import { useChatStore } from "@/store/chatStore";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function ChatScreen() {
   const flatListRef = useRef<FlatList | null>(null);
+  const fadeAnim = useRef(new Animated.Value(1)).current;
   const { id } = useLocalSearchParams();
   const chat = useChatStore((state) =>
     state.chatHistory.find((chat) => chat.id === id)
   );
 
   const addNewMessage = useChatStore((state) => state.addNewMessage);
+  const isWaitingForResponse = useChatStore(
+    (state) => state.isWaitingForResponse
+  );
+
+  const [isLoadingResponse, setIsLoadingResponse] = useState(false);
+
+  const isLoading = isWaitingForResponse || isLoadingResponse;
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -21,6 +29,35 @@ export default function ChatScreen() {
 
     return () => clearTimeout(timeout);
   }, [chat?.messages]);
+
+  useEffect(() => {
+    let animation: Animated.CompositeAnimation | undefined;
+
+    if (isLoading) {
+      animation = Animated.loop(
+        Animated.sequence([
+          Animated.delay(1),
+          Animated.timing(fadeAnim, {
+            toValue: 0.4,
+            duration: 700,
+            easing: Easing.linear,
+            useNativeDriver: true,
+          }),
+          Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 700,
+            easing: Easing.linear,
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      animation.start();
+    }
+
+    return () => {
+      if (animation) animation.stop();
+    };
+  }, [isLoading]);
 
   if (!id || Array.isArray(id) || !chat) {
     return (
@@ -69,11 +106,12 @@ export default function ChatScreen() {
   //     }
   //   };
 
-  const handleSend = async (message: string) => {
+  const handleSend = async (message: string, imageBase64: string | null) => {
     const newMessage = {
       id: Date.now().toString(),
       role: "user" as const,
       message,
+      ...(imageBase64 && { image: imageBase64 }),
     };
     addNewMessage(id, newMessage);
 
@@ -82,13 +120,8 @@ export default function ChatScreen() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          messages: [
-            ...chat.messages.map((m) => ({
-              role: m.role,
-              content: m.message,
-            })),
-            { role: "user", content: message },
-          ],
+          messages: [{ role: "user", content: prompt }],
+          generateImage: true,
         }),
       });
 
@@ -111,6 +144,52 @@ export default function ChatScreen() {
     }
   };
 
+  const handleGenerateImage = async (prompt: string) => {
+    setIsLoadingResponse(true);
+    const userPrompt = {
+      id: Date.now().toString(),
+      role: "user" as const,
+      message: prompt,
+    };
+    addNewMessage(id, userPrompt);
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: [
+            ...chat.messages.map((m) => ({
+              role: m.role,
+              content: m.message,
+            })),
+            { role: "user", content: prompt },
+          ],
+          generateImage: true,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error);
+      }
+
+      const imageResponse = {
+        id: Date.now().toString(),
+        role: "assistant" as const,
+        message: "Here is your generated image:",
+        image: data.generatedImage,
+      };
+
+      addNewMessage(chat.id, imageResponse);
+    } catch (error) {
+      console.error("Image generation error:", error);
+    } finally {
+      setIsLoadingResponse(false);
+    }
+  };
+
   if (!chat) {
     return (
       <View>
@@ -120,12 +199,29 @@ export default function ChatScreen() {
   }
   return (
     <View className="flex-1">
-      <FlatList
-        data={chat.messages}
-        renderItem={({ item }) => <MessageListItem messageItem={item} />}
+      <View className="flex-1">
+        <FlatList
+          ref={flatListRef}
+          data={chat?.messages || []}
+          renderItem={({ item }) => <MessageListItem messageItem={item} />}
+          contentContainerStyle={{ paddingTop: 15 }}
+          ListFooterComponent={() =>
+            isLoading && (
+              <Animated.Text
+                style={{ opacity: fadeAnim }}
+                className="text-[#939393] px-6 mb-4"
+              >
+                Waiting for response...
+              </Animated.Text>
+            )
+          }
+        />
+      </View>
+      <ChatInput
+        onSend={handleSend}
+        isLoading={isLoading}
+        onGenerateImage={handleGenerateImage}
       />
-
-      <ChatInput onSend={handleSend} isLoading={false} />
     </View>
   );
 }

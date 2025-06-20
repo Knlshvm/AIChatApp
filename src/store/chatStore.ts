@@ -4,6 +4,8 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface ChatStore {
+  isWaitingForResponse: boolean;
+  setIsWaitingForResponse: (isWaitingForResponse: boolean) => void;
   chatHistory: Chat[];
   createNewChat: (title: string) => string;
   addNewMessage: (chatId: string, message: Message) => void;
@@ -13,6 +15,9 @@ export const useChatStore = create<ChatStore>()(
   persist(
     (set) => ({
       chatHistory: [],
+      isWaitingForResponse: false,
+      setIsWaitingForResponse: (isWaitingForResponse: boolean) =>
+        set({ isWaitingForResponse }),
       createNewChat: (title) => {
         const id = Date.now().toString();
         const newChat = {
