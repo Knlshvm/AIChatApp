@@ -14,20 +14,35 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.knlshvm.AIChatClone",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.knlshvm.AIChatClone"
     },
     "web": {
       "favicon": "./assets/favicon.png",
       "bundler": "metro",
       "output": "server"
     },
-    "plugins": [["expo-router"]]
+    "plugins": [
+      [
+        "expo-router"
+      ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "a15fbf49-ea65-4616-942a-e4b89732da68"
+      }
+    }
   }
 }
